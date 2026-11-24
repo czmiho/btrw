@@ -213,47 +213,79 @@ fn draw_timeline(frame: &mut Frame<'_>, app: &App, pal: &Palette, area: Rect) {
             Span::styled(format!(" {r_desc}"), Style::default().fg(pal.fg)),
         ]);
 
-        let mut spans = vec![Span::raw(" ")];
-        let max_slots = area.width.saturating_sub(6) as usize / 2;
         let total = app.timeline.len();
-        let (start, end) = if total <= max_slots || max_slots < 5 {
-            (0, total)
-        } else {
-            let focus = match app.active_side {
-                PanelSide::Left => app.left_idx,
-                PanelSide::Right => app.right_idx,
-            };
-            let half = max_slots / 2;
-            let start = focus.saturating_sub(half).min(total - max_slots);
-            (start, (start + max_slots).min(total))
+        let l_tag = app.catalog.t("panel-left-tag");
+        let r_tag = app.catalog.t("panel-right-tag");
+        let token_for = |idx: usize| -> String {
+            let is_l = idx == app.left_idx;
+            let is_r = idx == app.right_idx;
+            if is_l && is_r {
+                format!("[{l_tag}{r_tag}]")
+            } else if is_l {
+                format!("[{l_tag}]")
+            } else if is_r {
+                format!("[{r_tag}]")
+            } else {
+                source_marker(&app.timeline[idx]).to_string()
+            }
         };
+        let day_keys: Vec<Option<String>> = app.timeline.iter().map(source_day_key).collect();
+        let token_widths: Vec<usize> = (0..total)
+            .map(|i| token_for(i).chars().count() + 1)
+            .collect();
 
+        // Exact character budget inside the border: reserve 1 leading space + "« " (2) + "»" (1).
+        let inner_w = area.width.saturating_sub(2) as usize;
+        let budget = inner_w.saturating_sub(4);
+        let focus = match app.active_side {
+            PanelSide::Left => app.left_idx,
+            PanelSide::Right => app.right_idx,
+        }
+        .min(total.saturating_sub(1));
+
+        let mut start = focus;
+        let mut end = (focus + 1).min(total);
+        let mut used = token_widths.get(focus).copied().unwrap_or(0);
+        let mut try_left = true;
+        loop {
+            let mut progressed = false;
+            for _ in 0..2 {
+                if try_left && start > 0 {
+                    let next_l = start - 1;
+                    let sep = usize::from(day_keys[next_l] != day_keys[start]);
+                    let need = token_widths[next_l] + sep;
+                    if used + need <= budget {
+                        start = next_l;
+                        used += need;
+                        progressed = true;
+                    }
+                } else if !try_left && end < total {
+                    let sep = usize::from(day_keys[end] != day_keys[end - 1]);
+                    let need = token_widths[end] + sep;
+                    if used + need <= budget {
+                        end += 1;
+                        used += need;
+                        progressed = true;
+                    }
+                }
+                try_left = !try_left;
+            }
+            if !progressed {
+                break;
+            }
+        }
+
+        let mut spans = vec![Span::raw(" ")];
         if start > 0 {
             spans.push(Span::raw("« "));
         }
-        let mut prev_day: Option<String> = None;
         for idx in start..end {
-            let cur_day = source_day_key(&app.timeline[idx]);
-            if idx > start && cur_day != prev_day {
+            if idx > start && day_keys[idx] != day_keys[idx - 1] {
                 spans.push(Span::styled("│", Style::default().fg(pal.border)));
             }
-            prev_day = cur_day;
-
             let is_l = idx == app.left_idx;
             let is_r = idx == app.right_idx;
-            let token = if is_l && is_r {
-                format!(
-                    "[{}{}]",
-                    app.catalog.t("panel-left-tag"),
-                    app.catalog.t("panel-right-tag")
-                )
-            } else if is_l {
-                format!("[{}]", app.catalog.t("panel-left-tag"))
-            } else if is_r {
-                format!("[{}]", app.catalog.t("panel-right-tag"))
-            } else {
-                source_marker(&app.timeline[idx]).to_string()
-            };
+            let token = token_for(idx);
             let style = if is_l && is_r {
                 Style::default()
                     .fg(Color::Black)

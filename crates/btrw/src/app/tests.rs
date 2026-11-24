@@ -598,3 +598,87 @@ use std::sync::mpsc;
         assert!(app.should_quit, "F10 must quit from SubvolumePicker");
         let _ = std::fs::remove_dir_all(&base);
     }
+
+    #[test]
+    fn renders_400_snapshots_without_overflow_in_timeline_and_picker() {
+        use ratatui::Terminal;
+        use ratatui::backend::TestBackend;
+
+        let base = std::env::temp_dir().join(format!(
+            "btrw-400snaps-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(&base).unwrap();
+
+        let mut app = App::new(
+            Config::default(),
+            base.join("config.toml"),
+            Some("cs".to_string()),
+            None,
+            Catalog::new(Locale::Cs),
+            Some(base.clone()),
+            Some(base.clone()),
+        );
+
+        // Build 400 hourly snapshots (~17 days) + LIVE.
+        let start_ts = 1_760_000_000u64;
+        let mut sources = Vec::with_capacity(401);
+        for i in 0..400u64 {
+            let ts = UNIX_EPOCH + Duration::from_secs(start_ts + i * 3600);
+            sources.push(Source::Snapshot(SnapshotInfo {
+                path: base.join(format!("@home.s{i:03}")),
+                live_target: PathBuf::from("/home"),
+                label: format!("timed/@home.s{i:03}"),
+                created_at: Some(ts),
+                kind: if i % 48 == 0 {
+                    SnapshotKind::Event
+                } else {
+                    SnapshotKind::Scheduled
+                },
+                read_only: true,
+                verified_parent: true,
+            }));
+        }
+        sources.push(Source::Live {
+            path: PathBuf::from("/home"),
+            label: "ŽIVÝ (/home)".to_string(),
+        });
+        app.timeline = sources;
+        app.left_idx = 200;
+        app.right_idx = 205;
+        app.active_side = PanelSide::Left;
+
+        let render_to_string = |app: &mut App, w: u16, h: u16| -> String {
+            let backend = TestBackend::new(w, h);
+            let mut terminal = Terminal::new(backend).unwrap();
+            terminal.draw(|f| crate::ui::draw(f, app)).unwrap();
+            let buf = terminal.backend().buffer();
+            let mut out = String::new();
+            for y in 0..h {
+                for x in 0..w {
+                    out.push_str(buf[(x, y)].symbol());
+                }
+                out.push('\n');
+            }
+            out
+        };
+
+        let main_view = render_to_string(&mut app, 96, 14);
+        let timeline_row = main_view.lines().nth(2).unwrap_or("");
+        assert!(
+            timeline_row.contains('«') && timeline_row.contains('»'),
+            "timeline with 400 snapshots must show both « and » inside border:\n{main_view}"
+        );
+        assert!(
+            timeline_row.ends_with('│'),
+            "right border must not be clipped:\n{main_view}"
+        );
+
+        app.open_picker(PanelSide::Left);
+        let picker_view = render_to_string(&mut app, 96, 20);
+        println!("=== MAIN VIEW (400 snapshots, 96x14) ===\n{main_view}");
+        println!("=== SOURCE PICKER (400 snapshots, 96x20) ===\n{picker_view}");
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
