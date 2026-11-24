@@ -28,11 +28,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-musl
-      - name: Install musl-tools and cargo-deb
+
+      - name: Install musl-tools
         run: |
           sudo apt-get update
           sudo apt-get install -y musl-tools
-          cargo install cargo-deb --locked
 
       - name: Build static x86_64-unknown-linux-musl binary
         run: |
@@ -40,12 +40,41 @@ jobs:
           file target/x86_64-unknown-linux-musl/release/btrw
           ls -lh target/x86_64-unknown-linux-musl/release/btrw
 
-      - name: Package tarball and .deb
+      - name: Package tarball and universal .deb (xz)
         run: |
           TAG="${GITHUB_REF_NAME}"
+          DEB_VER="${TAG#v}"
+          BIN="target/x86_64-unknown-linux-musl/release/btrw"
           mkdir -p dist
+
           tar -C target/x86_64-unknown-linux-musl/release -czf "dist/btrw-${TAG}-x86_64-linux-musl.tar.gz" btrw
-          cargo deb --no-build --target x86_64-unknown-linux-musl -p btrw --output "dist/btrw_${TAG}_amd64.deb"
+
+          STAGE="target/deb-stage"
+          rm -rf "${STAGE}"
+          mkdir -p "${STAGE}/DEBIAN" "${STAGE}/usr/bin" "${STAGE}/usr/share/doc/btrw"
+          install -m 0755 "${BIN}" "${STAGE}/usr/bin/btrw"
+          install -m 0644 README.md "${STAGE}/usr/share/doc/btrw/README.md"
+          install -m 0644 LICENSE "${STAGE}/usr/share/doc/btrw/copyright"
+
+          INSTALLED_KB=$(du -sk "${STAGE}/usr" | awk '{print $1}')
+          cat > "${STAGE}/DEBIAN/control" <<EOF
+          Package: btrw
+          Version: ${DEB_VER}
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Installed-Size: ${INSTALLED_KB}
+          Recommends: btrfs-progs
+          Maintainer: Btrfs Rewind Contributors <czmiho@users.noreply.github.com>
+          Homepage: https://github.com/czmiho/btrw
+          Description: Btrfs Rewind — dual-pane Btrfs snapshot & time-travel TUI
+           Btrfs Rewind (btrw) is a Midnight Commander-style dual-pane terminal UI
+           for browsing, comparing, time-traveling through, and safely restoring files
+           from Btrfs snapshots (btrbk, snapper, timeshift, manual) or plain directories.
+          EOF
+
+          dpkg-deb -Zxz --build --root-owner-group "${STAGE}" "dist/btrw_${TAG}_amd64.deb"
+          dpkg-deb --info "dist/btrw_${TAG}_amd64.deb"
           (cd dist && sha256sum * > SHA256SUMS)
           ls -lh dist/
 

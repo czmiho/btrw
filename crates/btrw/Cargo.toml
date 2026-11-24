@@ -28,5 +28,5 @@ section = "utils"
 priority = "optional"
 assets = [
     ["target/release/btrw", "usr/bin/btrw", "755"],
-    ["README.md", "usr/share/doc/btrw/README.md", "644"],
+    ["../../README.md", "usr/share/doc/btrw/README.md", "644"],
 ]
