@@ -1,0 +1,15 @@
+[package]
+name = "btrw-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+fluent = "0.16"
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+sha2 = "0.10"
+similar = "2"
+thiserror = "2"
+toml = "0.8"
+unic-langid = "0.9"

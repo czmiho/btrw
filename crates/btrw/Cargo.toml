@@ -1,0 +1,32 @@
+[package]
+name = "btrw"
+description = "Btrfs Rewind — Midnight Commander–style dual-pane Btrfs snapshot & time-travel TUI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+btrw-core = { path = "../btrw-core" }
+clap = { version = "4", features = ["derive"] }
+crossterm = "0.28"
+libc = "0.2"
+ratatui = "0.29"
+similar = "2"
+
+[package.metadata.deb]
+name = "btrw"
+maintainer = "Btrfs Rewind Contributors"
+copyright = "2026, Btrfs Rewind Contributors"
+license-file = ["../../LICENSE", "0"]
+extended-description = """\
+Btrfs Rewind (btrw) is a Midnight Commander–style dual-pane terminal UI \
+for browsing, comparing, time-traveling through, and safely restoring files \
+from Btrfs snapshots (btrbk, snapper, timeshift, manual) or plain directories."""
+depends = ""
+recommends = "btrfs-progs"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/btrw", "usr/bin/btrw", "755"],
+    ["README.md", "usr/share/doc/btrw/README.md", "644"],
+]

@@ -1,0 +1,20 @@
+/target
+**/*.rs.bk
+*.swp
+*.swo
+*.orig
+*.rej
+*.bak.*
+*.log
+*.patch
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+
+# Internal design / review / KVM test notes
+/SPEC.md
+/KVM_TEST_PLAN.md
+/code_review.md
+/REPORT.md

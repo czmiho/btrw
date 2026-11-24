@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/btrw-core",
+    "crates/btrw",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
