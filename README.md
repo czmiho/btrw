@@ -46,7 +46,19 @@ Designed for systems with frequent scheduled snapshots (hourly or more often), w
 
 ---
 
-## Requirements & Build
+## Installation
+
+### Pre-built `.deb` Package & Static Binary (Recommended)
+
+Download the latest release from [GitHub Releases](https://github.com/czmiho/btrw/releases):
+
+* **Universal `.deb` package (`btrw_<version>_amd64.deb`):** contains a **fully static `musl` binary** (`x86_64-unknown-linux-musl`) packaged with `xz` compression and **zero `glibc` or shared library dependencies** (`Recommends: btrfs-progs` only). Works out of the box across old and new `.deb` distributions alike — verified from **Debian 11 Bullseye** (`glibc 2.31`, kernel `5.10`) through **Ubuntu 24.04+**, Linux Mint, Pop!_OS, and even other Linux distros via direct extraction.
+  ```bash
+  sudo apt install ./btrw_0.1_amd64.deb
+  ```
+* **Standalone static tarball (`btrw-<version>-x86_64-linux-musl.tar.gz`):** works on any `x86_64` Linux distribution (Arch, Fedora, openSUSE, Alpine, etc.) — simply extract `btrw` into `/usr/local/bin/`.
+
+### Building from Source
 
 * **Linux** with `btrfs-progs` (`btrfs` in `$PATH`)
 * **Rust** toolchain (`cargo`, `rustc`)
