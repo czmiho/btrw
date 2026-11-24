@@ -5,19 +5,19 @@ A fast, Midnight Commander–style dual-pane terminal UI for browsing, comparing
 Designed for systems with frequent scheduled snapshots (hourly or more often), while staying completely agnostic to your snapshot tool — works out of the box with **`btrbk`**, **`snapper`**, **`timeshift`**, and manual `btrfs subvolume snapshot` setups, as well as any pair of plain directories.
 
 ```text
-┌─ Timeline [/home] (48 snapshots) ─────────────────────────────────────────────┐
-│ [L] 2026-11-23 14:00  ↔  [R] LIVE (/home)                                     │
-│  · · · · ● · · │ · · · [L] · · · │ · · · ● · · · [R]                          │
-├───────────────────────────────────────┬───────────────────────────────────────┤
-│ [L] @home.20261123T1400 (11-23 14:00) │ [R] LIVE (/home) — /miho              │
-│   * projects/                  1.2 GiB│   * projects/      1.2 GiB     3 chg  │
-│   M .bashrc                   4.1 KiB │   M .bashrc        4.3 KiB    +214 B  │
-│   D old-notes.md              1.8 KiB │   D —                   —   -1.8 KiB  │
-│   A —                               — │   A todo.md          620 B    +620 B  │
-├───────────────────────────────────────┴───────────────────────────────────────┤
-│ -rw-r--r-- 1000:1000 2026-11-23 14:12  |  Sort: name ↑                        │
-│ F1 Help  F2 Diff  F3 TimeTravel  F4 ExtDiff  F5 Restore  F6 SaveAs  F8 Subvol  F9 Config  F10 Quit │
-└───────────────────────────────────────────────────────────────────────────────┘
+┌─ Timeline [/home] (48 snapshots) ────────────────────────────────────────────────────────┐
+│ [L] 2026-11-23 14:00  ↔  [R] LIVE (/home)                                                │
+│  · · · · ● · · │ · · · [L] · · · │ · · · ● · · · [R]                                     │
+├────────────────────────────────────────────┬─────────────────────────────────────────────┤
+│ [L] @home.20261123T1400 (11-23 14:00)      │ [R] LIVE (/home) — /miho                    │
+│   * projects/                      1.2 GiB │   * projects/            1.2 GiB     3 chg  │
+│   M .bashrc                        4.1 KiB │   M .bashrc              4.3 KiB    +214 B  │
+│   D old-notes.md                   1.8 KiB │   D —                          —   -1.8 KiB │
+│   A —                                    — │   A todo.md                620 B    +620 B  │
+├────────────────────────────────────────────┴─────────────────────────────────────────────┤
+│ -rw-r--r-- 1000:1000 2026-11-23 14:12  |  Sort: name ↑                                   │
+│ F1 Help  F2 Diff  F3 History  F4 ExtDiff  F5 Restore  F6 SaveAs  F8 Subvol  F9 Cfg  F10  │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
